@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+        }
+        #qr-scanner {
+            width: 300px;
+            height: 300px;
+            margin: auto;
+            border: 2px solid #000;
+            background: #fff;
+        }
+        #qr-result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <button onclick="goToNext()">Next</button>
+        <h2>QR Code Scanner</h2>
+        <button onclick="goToFinish()">Finish</button>
+    </div>
+
+    <div id="qr-scanner"></div>
+    <p id="qr-result">Scan a QR Code...</p>
+    <button onclick="startScanner()">Start Scanner</button>
+    <button onclick="stopScanner()">Stop Scanner</button>
+
+    <script>
+        let scanner;
+        let scannedText = "";
+
+        function startScanner() {
+            scanner = new Html5Qrcode("qr-scanner");
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    let backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
+                    scanner.start(backCamera.id, { fps: 10, qrbox: 250 },
+                        (decodedText) => {
+                            scannedText = decodedText;
+                            document.getElementById("qr-result").innerText = "Scanned: " + scannedText;
+                            stopScanner();
+                        },
+                        (errorMessage) => {
+                            console.log(errorMessage);
+                        }
+                    ).catch(err => console.log(err));
+                }
+            }).catch(err => console.log(err));
+        }
+
+        function stopScanner() {
+            if (scanner) {
+                scanner.stop().then(() => {
+                    console.log("Scanner stopped");
+                }).catch(err => console.log(err));
+            }
+        }
+
+        function saveDataAndRedirect(url) {
+            if (scannedText) {
+                localStorage.setItem("Currency Scanning", scannedText);
+                window.location.href = url;
+            } else {
+                alert("No QR code scanned!");
+            }
+        }
+
+        function goToNext() {
+            saveDataAndRedirect("index.html");
+        }
+
+        function goToFinish() {
+            saveDataAndRedirect("finish.html");
+        }
+    </script>
+
+</body>
+</html>
